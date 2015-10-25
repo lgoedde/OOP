@@ -1,4 +1,6 @@
-import java.awt.*;
+package com.brackeen.javagamebook.graphics;
+
+import java.awt.Image;
 
 public class Sprite {
 

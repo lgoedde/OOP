@@ -1,12 +1,17 @@
+//package src.com.brackeen.javagamebook.test;
+
 import java.awt.*;
 import javax.swing.ImageIcon;
 
-public class StartUp {
+import src.com.brackeen.javagamebook.graphics.*;
 
-    public static void main(String args[]) {
-        StartUp test = new StartUp();
-        test.run();
-    }
+/**
+    Simple abstract class used for testing. Subclasses should
+    implement the draw() method.
+*/
+public abstract class StartUp {
+
+    protected static final int FONT_SIZE = 24;
 
     private static final DisplayMode POSSIBLE_MODES[] = {
         new DisplayMode(800, 600, 32, 0),
@@ -17,68 +22,96 @@ public class StartUp {
         new DisplayMode(640, 480, 16, 0)
     };
 
-    private static final long DEMO_TIME = 10000;
+    private boolean isRunning;
+    protected ScreenManager screen;
 
-    private ScreenManager screen;
-    private Image bgImage;
-    private Sprite sprite;
 
-    public void loadImages() {
-        // load images
-        bgImage = loadImage("images/background.jpg");
-        Image player1 = loadImage("images/player1.png");
-        Image player2 = loadImage("images/player2.png");
-        Image player3 = loadImage("images/player3.png");
-
-        // create sprite
-        Animation anim = new Animation();
-        anim.addFrame(player1, 250);
-        anim.addFrame(player2, 150);
-        anim.addFrame(player1, 150);
-        anim.addFrame(player2, 150);
-        anim.addFrame(player3, 200);
-        anim.addFrame(player2, 150);
-        sprite = new Sprite(anim);
-
-        // start the sprite off moving down and to the right
-        sprite.setVelocityX(0);
-        sprite.setVelocityY(0);
+    /**
+        Signals the game loop that it's time to quit
+    */
+    public void stop() {
+        isRunning = false;
     }
 
 
-    private Image loadImage(String fileName) {
+    /**
+        Calls init() and gameLoop()
+    */
+    public void run() {
+        try {
+            init();
+            gameLoop();
+        }
+        finally {
+            screen.restoreScreen();
+            lazilyExit();
+        }
+    }
+
+
+    /**
+        Exits the VM from a daemon thread. The daemon thread waits
+        2 seconds then calls System.exit(0). Since the VM should
+        exit when only daemon threads are running, this makes sure
+        System.exit(0) is only called if neccesary. It's neccesary
+        if the Java Sound system is running.
+    */
+    public void lazilyExit() {
+        Thread thread = new Thread() {
+            public void run() {
+                // first, wait for the VM exit on its own.
+                try {
+                    Thread.sleep(2000);
+                }
+                catch (InterruptedException ex) { }
+                // system is still running, so force an exit
+                System.exit(0);
+            }
+        };
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+
+    /**
+        Sets full screen mode and initiates and objects.
+    */
+    public void init() {
+        screen = new ScreenManager();
+        DisplayMode displayMode =
+            screen.findFirstCompatibleMode(POSSIBLE_MODES);
+        screen.setFullScreen(displayMode);
+
+        Window window = screen.getFullScreenWindow();
+        window.setFont(new Font("Dialog", Font.PLAIN, FONT_SIZE));
+        window.setBackground(Color.blue);
+        window.setForeground(Color.white);
+
+        isRunning = true;
+    }
+
+
+    public Image loadImage(String fileName) {
         return new ImageIcon(fileName).getImage();
     }
 
 
-    public void run() {
-        screen = new ScreenManager();
-        try {
-            DisplayMode displayMode =
-                screen.findFirstCompatibleMode(POSSIBLE_MODES);
-            screen.setFullScreen(displayMode);
-            loadImages();
-            animationLoop();
-        }
-        finally {
-            screen.restoreScreen();
-        }
-    }
-
-
-    public void animationLoop() {
+    /**
+        Runs through the game loop until stop() is called.
+    */
+    public void gameLoop() {
         long startTime = System.currentTimeMillis();
         long currTime = startTime;
 
-        while (currTime - startTime < DEMO_TIME) {
+        while (isRunning) {
             long elapsedTime =
                 System.currentTimeMillis() - currTime;
             currTime += elapsedTime;
 
-            // update the sprites
+            // update
             update(elapsedTime);
 
-            // draw and update the screen
+            // draw the screen
             Graphics2D g = screen.getGraphics();
             draw(g);
             g.dispose();
@@ -93,39 +126,18 @@ public class StartUp {
     }
 
 
+    /**
+        Updates the state of the game/animation based on the
+        amount of elapsed time that has passed.
+    */
     public void update(long elapsedTime) {
-        // check sprite bounds
-        if (sprite.getX() < 0) {
-            sprite.setVelocityX(Math.abs(sprite.getVelocityX()));
-        }
-        else if (sprite.getX() + sprite.getWidth() >=
-            screen.getWidth())
-        {
-            sprite.setVelocityX(-Math.abs(sprite.getVelocityX()));
-        }
-        if (sprite.getY() < 0) {
-            sprite.setVelocityY(Math.abs(sprite.getVelocityY()));
-        }
-        else if (sprite.getY() + sprite.getHeight() >=
-            screen.getHeight())
-        {
-            sprite.setVelocityY(-Math.abs(sprite.getVelocityY()));
-        }
-
-        // update sprite
-        sprite.update(elapsedTime);
+        // do nothing
     }
 
 
-    public void draw(Graphics g) {
-        // draw background
-        g.drawImage(bgImage, 0, 0, null);
-
-        // draw sprite
-        g.drawImage(sprite.getImage(),
-            Math.round(sprite.getX()),
-            Math.round(sprite.getY()),
-            null);
-    }
-
+    /**
+        Draws to the screen. Subclasses must override this
+        method.
+    */
+    public abstract void draw(Graphics2D g);
 }
