@@ -168,7 +168,7 @@ public class InputManagerTest extends GameCore {
     */
     private void createSprite() {
         // load images
-        bgImage = loadImage("../images/background.jpg");
+        bgImage = loadImage("../images/mario1.jpg");
         Image player1 = loadImage("../images/player1.png");
         Image player2 = loadImage("../images/player2.png");
         Image player3 = loadImage("../images/player3.png");

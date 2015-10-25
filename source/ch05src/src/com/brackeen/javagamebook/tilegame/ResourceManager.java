@@ -90,7 +90,7 @@ public class ResourceManager {
             currentMap++;
             try {
                 map = loadMap(
-                    "maps/map" + currentMap + ".txt");
+                    "maps/map" + "0" + ".txt");
             }
             catch (IOException ex) {
                 if (currentMap == 1) {
@@ -109,7 +109,7 @@ public class ResourceManager {
     public TileMap reloadMap() {
         try {
             return loadMap(
-                "maps/map" + currentMap + ".txt");
+                "maps/map" + "0" + ".txt");
         }
         catch (IOException ex) {
             ex.printStackTrace();
