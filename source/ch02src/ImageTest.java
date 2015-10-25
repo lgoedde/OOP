@@ -39,7 +39,7 @@ public class ImageTest extends JFrame {
         setBackground(Color.blue);
         setForeground(Color.white);
         setFont(new Font("Dialog", Font.PLAIN, FONT_SIZE));
-        imagesLoaded = false;
+        imagesLoaded = true;
 
         screen = new SimpleScreenManager();
         try {
@@ -62,7 +62,7 @@ public class ImageTest extends JFrame {
         transparentImage = loadImage("images/transparent.png");
         translucentImage = loadImage("images/translucent.png");
         antiAliasedImage = loadImage("images/antialiased.png");
-        imagesLoaded = true;
+        imagesLoaded = false;
         // signal to AWT to repaint this window
         repaint();
     }
