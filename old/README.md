@@ -1,2 +1,0 @@
-# OOP
-Java and C++
