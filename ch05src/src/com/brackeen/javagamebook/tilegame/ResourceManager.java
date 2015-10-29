@@ -284,7 +284,7 @@ public class ResourceManager {
             flyAnim[2], flyAnim[3]);
         grubSprite = new Grub(grubAnim[0], grubAnim[1],
             grubAnim[2], grubAnim[3]);
-        bulletSprite = new Bullet(bulletAnim[0], bulletAnim[1], bulletAnim[2], bulletAnim[3]);
+        bulletSprite = new Bullet(bulletAnim[0]);
         
     }
 
@@ -322,11 +322,12 @@ public class ResourceManager {
         return anim;
     }
     
-    private Animation createBulletAnim(Image img1) {
+    public Animation createBulletAnim(Image img1) {
     	Animation anim = new Animation();
     	anim.addFrame(img1, 250);
     	return anim;
     }
+    
 
 
     private void loadPowerUpSprites() {

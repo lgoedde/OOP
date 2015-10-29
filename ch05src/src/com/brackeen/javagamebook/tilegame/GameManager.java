@@ -35,7 +35,7 @@ public class GameManager extends GameCore {
     private TileMap map;
     private MidiPlayer midiPlayer;
     private SoundManager soundManager;
-    private ResourceManager resourceManager;
+    private static ResourceManager resourceManager;
     private Sound prizeSound;
     private Sound boopSound;
     private InputManager inputManager;
@@ -45,6 +45,7 @@ public class GameManager extends GameCore {
     private GameAction moveRight;
     private GameAction jump;
     private GameAction exit;
+    private GameAction shoot;
 
 
     public void init() {
@@ -105,7 +106,7 @@ public class GameManager extends GameCore {
         inputManager.mapToKey(moveRight, KeyEvent.VK_RIGHT);
         inputManager.mapToKey(jump, KeyEvent.VK_SPACE);
         inputManager.mapToKey(exit, KeyEvent.VK_ESCAPE);
-        //inputManager.mapToKey(shoot, KeyEvent.VK_S);
+        inputManager.mapToKey(shoot, KeyEvent.VK_S);
     }
 
 
@@ -128,10 +129,20 @@ public class GameManager extends GameCore {
                 player.jump(false);
             }
             player.setVelocityX(velocityX);
+            if(shoot.isPressed()) {
+            	Animation newAnim = getBulletAnim();
+            	Bullet bullet = new Bullet(newAnim);
+            }
         }
-
+        
     }
-
+ 
+    public static Animation getBulletAnim()
+    {
+    	Animation anim = resourceManager.createBulletAnim(resourceManager.loadImage("bullet.png"));
+		return anim;
+    	
+    }
 
     public void draw(Graphics2D g) {
         renderer.draw(g, map,
