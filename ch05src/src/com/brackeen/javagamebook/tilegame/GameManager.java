@@ -97,15 +97,10 @@ public class GameManager extends GameCore {
             GameAction.DETECT_INITAL_PRESS_ONLY);
         exit = new GameAction("exit",
             GameAction.DETECT_INITAL_PRESS_ONLY);
-<<<<<<< HEAD
-        
-        shoot = new GameAction("shoot", GameAction.DETECT_INITAL_PRESS_ONLY);
-        
-=======
+
         shoot = new GameAction("shoot",
         		GameAction.DETECT_INITAL_PRESS_ONLY);
 
->>>>>>> f9714158388b76cbb9aa482a5a5e4dc5953b390d
         inputManager = new InputManager(
             screen.getFullScreenWindow());
         inputManager.setCursor(InputManager.INVISIBLE_CURSOR);
