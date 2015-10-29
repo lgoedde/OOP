@@ -97,9 +97,15 @@ public class GameManager extends GameCore {
             GameAction.DETECT_INITAL_PRESS_ONLY);
         exit = new GameAction("exit",
             GameAction.DETECT_INITAL_PRESS_ONLY);
+<<<<<<< HEAD
         
         shoot = new GameAction("shoot", GameAction.DETECT_INITAL_PRESS_ONLY);
         
+=======
+        shoot = new GameAction("shoot",
+        		GameAction.DETECT_INITAL_PRESS_ONLY);
+
+>>>>>>> f9714158388b76cbb9aa482a5a5e4dc5953b390d
         inputManager = new InputManager(
             screen.getFullScreenWindow());
         inputManager.setCursor(InputManager.INVISIBLE_CURSOR);
@@ -130,7 +136,6 @@ public class GameManager extends GameCore {
             if (jump.isPressed()) {
                 player.jump(false);
             }
-            player.setVelocityX(velocityX);
             if(shoot.isPressed()) {
             	Animation newAnim = getBulletAnim();
             	Bullet bullet = new Bullet(newAnim);
@@ -139,6 +144,8 @@ public class GameManager extends GameCore {
             	bullet.setY(map.getPlayer().getY() - 110);
             	map.addSprite(bullet);
             }
+            player.setVelocityX(velocityX);
+           
         }
         
     }
