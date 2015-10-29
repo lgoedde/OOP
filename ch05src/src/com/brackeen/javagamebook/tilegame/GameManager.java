@@ -46,6 +46,7 @@ public class GameManager extends GameCore {
     private GameAction jump;
     private GameAction exit;
     private GameAction shoot;
+    private String direction;
 
 
     public void init() {
@@ -53,7 +54,7 @@ public class GameManager extends GameCore {
 
         // set up input manager
         initInput();
-
+       
         // start resource manager
         resourceManager = new ResourceManager(
         screen.getFullScreenWindow().getGraphicsConfiguration());
@@ -77,6 +78,9 @@ public class GameManager extends GameCore {
             midiPlayer.getSequence("sounds/music.midi");
         midiPlayer.play(sequence, true);
         toggleDrumPlayback();
+        
+        //initial direction
+        direction = "right";
     }
 
 
@@ -124,9 +128,11 @@ public class GameManager extends GameCore {
             float velocityX = 0;
             if (moveLeft.isPressed()) {
                 velocityX-=player.getMaxSpeed();
+                direction = "left";
             }
             if (moveRight.isPressed()) {
                 velocityX+=player.getMaxSpeed();
+                direction = "right";
             }
             if (jump.isPressed()) {
                 player.jump(false);
@@ -135,7 +141,7 @@ public class GameManager extends GameCore {
             	Animation newAnim = getBulletAnim();
             	Bullet bullet = new Bullet(newAnim);
             	bullet.setX(map.getPlayer().getX() - 40);
-            	bullet.setVelocityX(.5f);
+            	bullet.setVelocityX( (direction == "right") ? .5f : -.5f );
             	bullet.setY(map.getPlayer().getY() - 110);
             	map.addSprite(bullet);
             }
@@ -235,13 +241,17 @@ public class GameManager extends GameCore {
         if (s2 instanceof Creature && !((Creature)s2).isAlive()) {
             return false;
         }
+        
+        
 
         // get the pixel location of the Sprites
         int s1x = Math.round(s1.getX());
         int s1y = Math.round(s1.getY());
         int s2x = Math.round(s2.getX());
         int s2y = Math.round(s2.getY());
-
+        if( s1 instanceof Bullet){
+        	System.out.print("Creature x = " +s1x + " "+  s2x + "\n");
+        }
         // check if the two sprites' boundaries intersect
         return (s1x < s2x + s2.getWidth() &&
             s2x < s1x + s1.getWidth() &&
@@ -305,6 +315,9 @@ public class GameManager extends GameCore {
                     updateCreature(creature, elapsedTime);
                 }
             }
+            else if( sprite instanceof Bullet ){
+        		checkBulletCollision((Bullet)sprite);
+        	}
             // normal update
             sprite.update(elapsedTime);
         }
@@ -350,7 +363,7 @@ public class GameManager extends GameCore {
         if (creature instanceof Player) {
             checkPlayerCollision((Player)creature, false);
         }
-
+        
         // change y
         float dy = creature.getVelocityY();
         float oldY = creature.getY();
@@ -407,10 +420,11 @@ public class GameManager extends GameCore {
                 player.jump(true);
             }
             else {
-                // player dies!
+                // player dies!()
                 player.setState(Creature.STATE_DYING);
             }
         }
+      
     }
 
 
@@ -438,5 +452,19 @@ public class GameManager extends GameCore {
             map = resourceManager.loadNextMap();
         }
     }
+    
+    public void checkBulletCollision(Bullet bullet){
+    	Sprite collisionSprite = getSpriteCollision(bullet);
+    	
+    	if (collisionSprite instanceof Grub ){ //&& !(collisionSprite instanceof Player)) {
+            Grub badguy = (Grub)collisionSprite;
+            System.out.print(badguy);
+            // kill the badguy and make player bounce
+            soundManager.play(boopSound);
+            badguy.setState(Creature.STATE_DYING);
+            map.removeSprite(bullet);
+    	}
+    }
+    
 
 }
