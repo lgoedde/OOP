@@ -247,7 +247,7 @@ public class ResourceManager {
             loadImage("fly3.png"),
             loadImage("grub1.png"),
             loadImage("grub2.png"),
-            loadImage("bullet.png"),
+            loadImage("new_bullet.png"),
         };
 
         images[1] = new Image[images[0].length];

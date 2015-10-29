@@ -18,7 +18,7 @@ public class Bullet extends Sprite {
 	}
 
 	 public void collideHorizontal() {
-	        setVelocityX(0);
+	        setVelocityX(0.1f);
 	    }
 	 
 	 
