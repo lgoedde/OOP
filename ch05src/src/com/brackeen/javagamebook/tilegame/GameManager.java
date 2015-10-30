@@ -122,8 +122,8 @@ public class GameManager extends GameCore {
         if (exit.isPressed()) {
             stop();
         }
-
         Player player = (Player)map.getPlayer();
+        player.createBullet = false;
         if (player.isAlive()) {
             float velocityX = 0;
             if (moveLeft.isPressed()) {
@@ -138,12 +138,7 @@ public class GameManager extends GameCore {
                 player.jump(false);
             }
             if(shoot.isPressed()) {
-            	Animation newAnim = getBulletAnim();
-            	Bullet bullet = new Bullet(newAnim);
-            	bullet.setX(map.getPlayer().getX() - 40);
-            	bullet.setVelocityX( (direction == "right") ? .5f : -.5f );
-            	bullet.setY(map.getPlayer().getY() - 110);
-            	map.addSprite(bullet);
+            	player.createBullet = true;
             }
             player.setVelocityX(velocityX);
            
@@ -151,12 +146,6 @@ public class GameManager extends GameCore {
         
     }
  
-    public static Animation getBulletAnim()
-    {
-    	Animation anim = resourceManager.createBulletAnim(resourceManager.loadImage("new_bullet.png"));
-		return anim;
-    	
-    }
 
     public void draw(Graphics2D g) {
         renderer.draw(g, map,
@@ -250,7 +239,7 @@ public class GameManager extends GameCore {
         int s2x = Math.round(s2.getX());
         int s2y = Math.round(s2.getY());
         if( s1 instanceof Bullet){
-        	System.out.print("Creature x = " +s1x + " "+  s2x + "\n");
+        	
         }
         // check if the two sprites' boundaries intersect
         return (s1x < s2x + s2.getWidth() &&
@@ -294,7 +283,7 @@ public class GameManager extends GameCore {
             map = resourceManager.reloadMap();
             return;
         }
-
+        
         // get keyboard/mouse input
         checkInput(elapsedTime);
 
@@ -316,7 +305,7 @@ public class GameManager extends GameCore {
                 }
             }
             else if( sprite instanceof Bullet ){
-        		checkBulletCollision((Bullet)sprite);
+        		//checkBulletCollision((Bullet)sprite);
         	}
             // normal update
             sprite.update(elapsedTime);
@@ -363,7 +352,16 @@ public class GameManager extends GameCore {
         if (creature instanceof Player) {
             checkPlayerCollision((Player)creature, false);
         }
-        
+        if( creature instanceof Player){
+        	Player player1 = (Player)creature;
+        	if(player1.createBullet) {
+            	Bullet bullet = (Bullet)resourceManager.getBullets().clone();
+            	bullet.setX( (direction == "right") ? player1.getX() - 65 : player1.getX() - 150);
+            	bullet.setVelocityX( (direction == "right") ? .5f : -.5f );
+            	bullet.setY(player1.getY() - 110);
+            	map.addSprite(bullet);
+            }
+        }
         // change y
         float dy = creature.getVelocityY();
         float oldY = creature.getY();
@@ -462,7 +460,7 @@ public class GameManager extends GameCore {
             // kill the badguy and make player bounce
             soundManager.play(boopSound);
             badguy.setState(Creature.STATE_DYING);
-            map.removeSprite(bullet);
+            //map.removeSprite(bullet);
     	}
     }
     

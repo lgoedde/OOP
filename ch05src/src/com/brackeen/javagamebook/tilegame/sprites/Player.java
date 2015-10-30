@@ -10,6 +10,7 @@ public class Player extends Creature {
     private static final float JUMP_SPEED = -.95f;
     private int health;
     private boolean onGround;
+    public boolean createBullet;
 
     public Player(Animation left, Animation right,
         Animation deadLeft, Animation deadRight)
