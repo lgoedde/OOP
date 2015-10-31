@@ -13,7 +13,6 @@ import com.brackeen.javagamebook.sound.*;
 import com.brackeen.javagamebook.input.*;
 import com.brackeen.javagamebook.test.GameCore;
 import com.brackeen.javagamebook.tilegame.sprites.*;
-
 /**
     GameManager manages all parts of the game.
 */
@@ -38,6 +37,7 @@ public class GameManager extends GameCore {
     private static ResourceManager resourceManager;
     private Sound prizeSound;
     private Sound boopSound;
+    private Sound fireSound;
     private InputManager inputManager;
     private TileMapRenderer renderer;
 
@@ -57,6 +57,8 @@ public class GameManager extends GameCore {
     private boolean onscreen = false; //check to see if grub is on screen so we can start shooting
     private float curr_x = 0;
     private float curr_y = 0; //current positions for the grub
+    private float prev_x = 0;
+    private long still = 0; //If the player is still he gets some health
     public void init() {
         super.init();
 
@@ -77,8 +79,9 @@ public class GameManager extends GameCore {
 
         // load sounds
         soundManager = new SoundManager(PLAYBACK_FORMAT);
-        prizeSound = soundManager.getSound("sounds/prize.wav");
-        boopSound = soundManager.getSound("sounds/boop2.wav");
+        prizeSound = soundManager.getSound("./sounds/prize.wav");
+        boopSound = soundManager.getSound("./sounds/boop2.wav");
+        //fireSound = soundManager.getSound("./sounds/bullet.wav");
 
         // start music
         midiPlayer = new MidiPlayer();
@@ -282,19 +285,57 @@ public class GameManager extends GameCore {
         return null;
     }
 
-
+    public boolean checkMovement(int curr, int prev) {
+    	if(curr - prev > 1) {
+    		return true;
+    	}
+    	else {
+    		return false;
+    	}
+    }
     /**
         Updates Animation, position, and velocity of all Sprites
         in the current map.
     */
     public void update(long elapsedTime) {
         Creature player = (Creature)map.getPlayer();
-
+        Player newPlayer = (Player)map.getPlayer(); //so we can update health n stuff
 
         // player is dead! start map over
         if (player.getState() == Creature.STATE_DEAD) {
+        	newPlayer.setHealth(0);
+        	still = 0;
+        	prev_x = 0;
             map = resourceManager.reloadMap();
             return;
+        }
+        if(newPlayer.getVelocityX() == 0) {
+        	still += elapsedTime;
+        }
+        else {
+        	still = 0;
+        }
+        if(newPlayer.getHealth() <= 0) {
+        	newPlayer.setState(Creature.STATE_DYING);
+        }
+        
+        if(prev_x == 0) {
+        	prev_x = newPlayer.getX();
+        }
+        
+        else {
+        	int curr_tile = TileMapRenderer.pixelsToTiles(newPlayer.getX());
+        	int prev_tile = TileMapRenderer.pixelsToTiles(prev_x);
+        	if(checkMovement(curr_tile,prev_tile)) {
+        		newPlayer.increaseHealth(1);
+        		prev_x = newPlayer.getX();
+        	}
+        if(still >= 1000) {
+        	newPlayer.increaseHealth(5);
+        	still = 0;
+        }
+        
+        	
         }
         
         // get keyboard/mouse input
@@ -367,8 +408,7 @@ public class GameManager extends GameCore {
     		gbullet.setX(curr_x-150);
     		gbullet.setVelocityX(-.5f);
     		gbullet.setY(curr_y-110);
-    		map.addSprite(gbullet);   
-    		gprev = System.currentTimeMillis();
+    		map.addSprite(gbullet);
     		onscreen = false;
     	}
     }
@@ -439,12 +479,14 @@ public class GameManager extends GameCore {
         	Player player1 = (Player)creature;
         	if(player1.createBullet) {
             	produceBullets();
+            	//soundManager.play(fireSound);
             }
         }
-        else if (creature instanceof Grub) {
+        else {
         	onscreen = true;  
         	curr_x = creature.getX();
         	curr_y = creature.getY();
+        	gprev = System.currentTimeMillis();
         
         }
         // change y
