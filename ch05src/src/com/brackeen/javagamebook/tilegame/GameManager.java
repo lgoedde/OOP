@@ -52,8 +52,11 @@ public class GameManager extends GameCore {
     private boolean pause = false; //1 second wait for cooldown
     private long prev = 0; //records point at which previous bullet was fired
     private long p_start = 0; //time to start count for cooldown period
-
-
+    private int grubRate = 2 * rate; //grub rate is 2x the player rate
+    private long gprev = 0; //previous time for grub
+    private boolean onscreen = false; //check to see if grub is on screen so we can start shooting
+    private float curr_x = 0;
+    private float curr_y = 0; //current positions for the grub
     public void init() {
         super.init();
 
@@ -145,6 +148,12 @@ public class GameManager extends GameCore {
             	player.createBullet = true;
             }
             player.setVelocityX(velocityX);
+            
+            if(onscreen) {
+            	instantiateGbullet();
+            }
+            
+            
            
         }
         
@@ -317,6 +326,7 @@ public class GameManager extends GameCore {
         		checkBulletCollision((Bullet)sprite);
                 }
         	}
+            
             // normal update
             sprite.update(elapsedTime);
         }
@@ -341,12 +351,26 @@ public class GameManager extends GameCore {
     	}
     }
     public void instantiateBullet() {
-    	Bullet bullet = (Bullet)resourceManager.getBullets().clone();
+    	Bullet bullet = (Bullet)resourceManager.getBullets(1).clone();
 		Player player1 = (Player)map.getPlayer();
 		bullet.setX( (direction == "right") ? player1.getX() - 65 : player1.getX() - 150);
 		bullet.setVelocityX( (direction == "right") ? .5f : -.5f );
 		bullet.setY(player1.getY() - 110);
 		map.addSprite(bullet);
+    }
+    
+    public void instantiateGbullet() {
+    	long curr_wait = System.currentTimeMillis() - gprev;
+    	boolean check = ((curr_wait > grubRate) && onscreen) ? true : false;
+    	if(check) {
+    		grubBullet gbullet = (grubBullet)resourceManager.getBullets(0).clone();
+    		gbullet.setX(curr_x-150);
+    		gbullet.setVelocityX(-.5f);
+    		gbullet.setY(curr_y-110);
+    		map.addSprite(gbullet);   
+    		gprev = System.currentTimeMillis();
+    		onscreen = false;
+    	}
     }
     
     public void produceBullets() {
@@ -417,6 +441,12 @@ public class GameManager extends GameCore {
             	produceBullets();
             }
         }
+        else if (creature instanceof Grub) {
+        	onscreen = true;  
+        	curr_x = creature.getX();
+        	curr_y = creature.getY();
+        
+        }
         // change y
         float dy = creature.getVelocityY();
         float oldY = creature.getY();
@@ -479,10 +509,10 @@ public class GameManager extends GameCore {
                 //Play a dying sound
             }
         }
-       else if (collisionSprite instanceof Bullet) {
+       else if (collisionSprite instanceof grubBullet) {
     	   player.decreaseHealth(5);
-    	   Bullet bullet = (Bullet)collisionSprite;
-    	   bullet.setState(Bullet.STATE_DEAD);
+    	   grubBullet gbullet = (grubBullet)collisionSprite;
+    	   gbullet.setState(Bullet.STATE_DEAD);
         }
       
     }

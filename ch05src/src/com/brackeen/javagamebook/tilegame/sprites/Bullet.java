@@ -10,7 +10,7 @@ public class Bullet extends Sprite {
 	public static final int STATE_NORMAL = 0;
 	public static final int STATE_DYING = 1;
 	public static final int STATE_DEAD = 2;
-	private int state;
+	protected int state;
     private long stateTime;
     private static final int DIE_TIME = 1000;
     private float x;

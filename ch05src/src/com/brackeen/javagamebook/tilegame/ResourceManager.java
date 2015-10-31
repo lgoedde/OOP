@@ -243,12 +243,17 @@ public class ResourceManager {
     	};
     	
     	PbulletSprite = new Bullet(createBulletAnim(images[0]));
-    	GbulletSprite = new Bullet(createBulletAnim(images[1]));
+    	GbulletSprite = new grubBullet(createBulletAnim(images[1]));
     	
     }
 
-    public Sprite getBullets(){
+    public Sprite getBullets(int n){
+    	if (n == 1) {
     	return(PbulletSprite);
+    	}
+    	else {
+    		return GbulletSprite;
+    	}
     }
     
     public void loadCreatureSprites() {
