@@ -47,6 +47,11 @@ public class GameManager extends GameCore {
     private GameAction exit;
     private GameAction shoot;
     private String direction;
+    private int count = 0; //Counts how many bullets we've fired
+    private int rate = 300; //rate which the bullets fire
+    private boolean pause = false; //1 second wait for cooldown
+    private long prev = 0; //records point at which previous bullet was fired
+    private long p_start = 0; //time to start count for cooldown period
 
 
     public void init() {
@@ -102,8 +107,7 @@ public class GameManager extends GameCore {
         exit = new GameAction("exit",
             GameAction.DETECT_INITAL_PRESS_ONLY);
 
-        shoot = new GameAction("shoot",
-        		GameAction.DETECT_INITAL_PRESS_ONLY);
+        shoot = new GameAction("shoot");
 
         inputManager = new InputManager(
             screen.getFullScreenWindow());
@@ -304,15 +308,70 @@ public class GameManager extends GameCore {
                     updateCreature(creature, elapsedTime);
                 }
             }
-            else if( sprite instanceof Bullet ){
-        		//checkBulletCollision((Bullet)sprite);
+            if( sprite instanceof Bullet ){
+            	Bullet bullet = (Bullet)sprite;
+                if (bullet.getState() == Bullet.STATE_DEAD) {
+                    i.remove();
+                }
+                else {
+        		checkBulletCollision((Bullet)sprite);
+                }
         	}
             // normal update
             sprite.update(elapsedTime);
         }
     }
 
-
+    public boolean checkRate() {
+    	long curr_rate = System.currentTimeMillis() - prev;
+    	if (curr_rate > rate) {
+    		return true;
+    	}
+    	else { return false; }
+    }
+    
+    public void countBullets() {
+    	long curr_rate = System.currentTimeMillis() - prev;
+    	int grace_rate = rate + 30; 
+    	if (curr_rate <= grace_rate) {
+    		count += 1; //increase the count if we are firing in auto mode
+    	}
+    	else {
+    		count = 0; //we aren't firing in automode so reset for next automode
+    	}
+    }
+    public void instantiateBullet() {
+    	Bullet bullet = (Bullet)resourceManager.getBullets().clone();
+		Player player1 = (Player)map.getPlayer();
+		bullet.setX( (direction == "right") ? player1.getX() - 65 : player1.getX() - 150);
+		bullet.setVelocityX( (direction == "right") ? .5f : -.5f );
+		bullet.setY(player1.getY() - 110);
+		map.addSprite(bullet);
+    }
+    
+    public void produceBullets() {
+    	if (checkRate() && !(pause)) {
+    		countBullets();
+    		if (count < 10) {
+    			instantiateBullet();
+    			prev = System.currentTimeMillis();
+    			//need to play a shoot sound here
+    		}
+    		else {
+    			//We need to go to cooldown period so set pause to true and start the timer for count
+    			pause = true;
+    			p_start = System.currentTimeMillis();		
+    		}
+    	}
+    	
+    	else {
+    		//we are waiting for cooldown period to be over
+    		long curr_wait = System.currentTimeMillis() - p_start;
+    		if (curr_wait >= 1000) {
+    			pause = false;
+    		}
+    	}
+    }
     /**
         Updates the creature, applying gravity for creatures that
         aren't flying, and checks collisions.
@@ -355,11 +414,7 @@ public class GameManager extends GameCore {
         if( creature instanceof Player){
         	Player player1 = (Player)creature;
         	if(player1.createBullet) {
-            	Bullet bullet = (Bullet)resourceManager.getBullets().clone();
-            	bullet.setX( (direction == "right") ? player1.getX() - 65 : player1.getX() - 150);
-            	bullet.setVelocityX( (direction == "right") ? .5f : -.5f );
-            	bullet.setY(player1.getY() - 110);
-            	map.addSprite(bullet);
+            	produceBullets();
             }
         }
         // change y
@@ -420,7 +475,14 @@ public class GameManager extends GameCore {
             else {
                 // player dies!()
                 player.setState(Creature.STATE_DYING);
+                player.setHealth(0);
+                //Play a dying sound
             }
+        }
+       else if (collisionSprite instanceof Bullet) {
+    	   player.decreaseHealth(5);
+    	   Bullet bullet = (Bullet)collisionSprite;
+    	   bullet.setState(Bullet.STATE_DEAD);
         }
       
     }
@@ -456,11 +518,14 @@ public class GameManager extends GameCore {
     	
     	if (collisionSprite instanceof Grub ){ //&& !(collisionSprite instanceof Player)) {
             Grub badguy = (Grub)collisionSprite;
-            System.out.print(badguy);
+            //System.out.print(badguy);
             // kill the badguy and make player bounce
             soundManager.play(boopSound);
             badguy.setState(Creature.STATE_DYING);
             //map.removeSprite(bullet);
+            bullet.setState(Bullet.STATE_DEAD);
+            Player player = (Player)map.getPlayer();
+            player.increaseHealth(5);
     	}
     }
     

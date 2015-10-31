@@ -65,11 +65,29 @@ public class Player extends Creature {
     }
     
     public void decreaseHealth(int num) {
+    	if ((this.health -= num) < 0) {
+    		this.health = 0;
+    		this.setState(STATE_DYING);
+    	}
+    	else {
     	this.health -= num;
+    	}
     }
     
     public void increaseHealth(int num) {
-    	this.health += num;
+    	if ((this.health += num) > 40 ) {
+    		this.health = 40;
+    	}
+    	else {
+    		this.health += num;
+    	}
+    }
+    
+    public void setHealth(int num) {
+    	if(this.health > 0 && this.health <= 40) {
+    		this.health = num;
+    	}
+    	
     }
     
     public int getHealth() {
