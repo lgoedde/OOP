@@ -59,6 +59,8 @@ public class GameManager extends GameCore {
     private float curr_y = 0; //current positions for the grub
     private float prev_x = 0;
     private long still = 0; //If the player is still he gets some health
+    private float gbulletCreation [];
+    private int create_index = 0;
     public void init() {
         super.init();
 
@@ -151,13 +153,7 @@ public class GameManager extends GameCore {
             	player.createBullet = true;
             }
             player.setVelocityX(velocityX);
-            
-            if(onscreen) {
-            	instantiateGbullet();
-            }
-            
-            
-           
+                    
         }
         
     }
@@ -254,9 +250,7 @@ public class GameManager extends GameCore {
         int s1y = Math.round(s1.getY());
         int s2x = Math.round(s2.getX());
         int s2y = Math.round(s2.getY());
-        if( s1 instanceof Bullet){
-        	
-        }
+
         // check if the two sprites' boundaries intersect
         return (s1x < s2x + s2.getWidth() &&
             s2x < s1x + s1.getWidth() &&
@@ -345,6 +339,7 @@ public class GameManager extends GameCore {
         updateCreature(player, elapsedTime);
         player.update(elapsedTime);
 
+        gbulletCreation = new float[100];
         // update other sprites
         Iterator i = map.getSprites();
         while (i.hasNext()) {
@@ -356,6 +351,7 @@ public class GameManager extends GameCore {
                 }
                 else {
                     updateCreature(creature, elapsedTime);
+                    
                 }
             }
             if( sprite instanceof Bullet ){
@@ -367,10 +363,21 @@ public class GameManager extends GameCore {
         		checkBulletCollision((Bullet)sprite);
                 }
         	}
-            
+            if( sprite instanceof grubBullet ){
+            	grubBullet gbullet = (grubBullet)sprite;
+                if (gbullet.getState() == grubBullet.STATE_DEAD) {
+                    i.remove();
+                }
+                
+            }
             // normal update
             sprite.update(elapsedTime);
         }
+        
+        for( int h=0; h < create_index; h=h+2) {
+        	instantiateGbullet(gbulletCreation[h], gbulletCreation[h+1]);
+        }
+        create_index = 0;
     }
 
     public boolean checkRate() {
@@ -391,25 +398,29 @@ public class GameManager extends GameCore {
     		count = 0; //we aren't firing in automode so reset for next automode
     	}
     }
+   
     public void instantiateBullet() {
     	Bullet bullet = (Bullet)resourceManager.getBullets(1).clone();
 		Player player1 = (Player)map.getPlayer();
-		bullet.setX( (direction == "right") ? player1.getX() - 65 : player1.getX() - 150);
+		bullet.setX( (direction == "right") ? player1.getX() : player1.getX());
 		bullet.setVelocityX( (direction == "right") ? .5f : -.5f );
-		bullet.setY(player1.getY() - 110);
+		bullet.setY(player1.getY() + 10);
 		map.addSprite(bullet);
     }
     
-    public void instantiateGbullet() {
-    	long curr_wait = System.currentTimeMillis() - gprev;
-    	boolean check = ((curr_wait > grubRate) && onscreen) ? true : false;
-    	if(check) {
+    public void instantiateGbullet(float bull_x, float bull_y) {
+    	//long curr_wait = System.currentTimeMillis() - gprev;
+    	gprev +=1;
+    	System.out.print("B4 check GBullet\n");
+    	if(gprev == 700 && System.currentTimeMillis() > 1000) {
+    		System.out.print("In check GBullet\n");
     		grubBullet gbullet = (grubBullet)resourceManager.getBullets(0).clone();
-    		gbullet.setX(curr_x-150);
+    		gbullet.setX(bull_x);
     		gbullet.setVelocityX(-.5f);
-    		gbullet.setY(curr_y-110);
+    		gbullet.setY(bull_y);
     		map.addSprite(gbullet);
     		onscreen = false;
+    		gprev = 0;
     	}
     }
     
@@ -478,15 +489,22 @@ public class GameManager extends GameCore {
         if( creature instanceof Player){
         	Player player1 = (Player)creature;
         	if(player1.createBullet) {
+        		System.out.print("producing bullets\n");
             	produceBullets();
             	//soundManager.play(fireSound);
             }
         }
         else {
-        	onscreen = true;  
-        	curr_x = creature.getX();
-        	curr_y = creature.getY();
-        	gprev = System.currentTimeMillis();
+        	onscreen = true; 
+        	if( creature.getVelocityX() != 0 ){
+	        	curr_x = creature.getX();
+	        	curr_y = creature.getY();
+	        	gbulletCreation[create_index] = curr_x;
+	        	gbulletCreation[create_index + 1] = curr_y;
+	        	create_index += 2;
+        	}
+        	//instantiateGbullet();
+        	//gprev = System.currentTimeMillis();
         
         }
         // change y
@@ -551,11 +569,13 @@ public class GameManager extends GameCore {
                 //Play a dying sound
             }
         }
+        
        else if (collisionSprite instanceof grubBullet) {
     	   player.decreaseHealth(5);
     	   grubBullet gbullet = (grubBullet)collisionSprite;
-    	   gbullet.setState(Bullet.STATE_DEAD);
+    	   gbullet.setState(grubBullet.STATE_DEAD);
         }
+        
       
     }
 

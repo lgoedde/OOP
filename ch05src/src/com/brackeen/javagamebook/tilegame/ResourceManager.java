@@ -239,7 +239,7 @@ public class ResourceManager {
     	
     	images = new Image[] {
     			loadImage("new_bullet.png"),
-    			loadImage("new_bullet.png"), //Get different bullet for grub
+    			loadImage("Gbullet.png"), //Get different bullet for grub
     	};
     	
     	PbulletSprite = new Bullet(createBulletAnim(images[0]));
