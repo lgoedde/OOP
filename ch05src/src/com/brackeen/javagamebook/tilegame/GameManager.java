@@ -13,6 +13,7 @@ import com.brackeen.javagamebook.sound.*;
 import com.brackeen.javagamebook.input.*;
 import com.brackeen.javagamebook.test.GameCore;
 import com.brackeen.javagamebook.tilegame.sprites.*;
+import com.brackeen.javagamebook.tilegame.sprites.PowerUp.Mushroom;
 /**
     GameManager manages all parts of the game.
 */
@@ -61,6 +62,8 @@ public class GameManager extends GameCore {
     private long still = 0; //If the player is still he gets some health
     private float gbulletCreation [];
     private int create_index = 0;
+    private int star_step = 0;
+    
     public void init() {
         super.init();
 
@@ -141,11 +144,18 @@ public class GameManager extends GameCore {
             if (moveLeft.isPressed()) {
                 velocityX-=player.getMaxSpeed();
                 direction = "left";
+                if(star_step > 0){
+                	star_step = star_step -1;
+                }
             }
             if (moveRight.isPressed()) {
                 velocityX+=player.getMaxSpeed();
                 direction = "right";
+                if(star_step > 0){
+                	star_step = star_step -1;
+                }
             }
+            System.out.print(star_step + "\n");
             if (jump.isPressed()) {
                 player.jump(false);
             }
@@ -560,18 +570,24 @@ public class GameManager extends GameCore {
                 soundManager.play(boopSound);
                 badguy.setState(Creature.STATE_DYING);
                 player.setY(badguy.getY() - player.getHeight());
+                player.increaseHealth(10);
                 player.jump(true);
             }
             else {
                 // player dies!()
-                player.setState(Creature.STATE_DYING);
-                player.setHealth(0);
+            	if(star_step == 0)
+            	{
+            		player.setState(Creature.STATE_DYING);
+            		player.setHealth(0);
+            	}
                 //Play a dying sound
             }
         }
         
        else if (collisionSprite instanceof grubBullet) {
-    	   player.decreaseHealth(5);
+    	   if(star_step == 0 ){
+    		   player.decreaseHealth(5);
+    	   }
     	   grubBullet gbullet = (grubBullet)collisionSprite;
     	   gbullet.setState(grubBullet.STATE_DEAD);
         }
@@ -587,9 +603,11 @@ public class GameManager extends GameCore {
     public void acquirePowerUp(PowerUp powerUp) {
         // remove it from the map
         map.removeSprite(powerUp);
-
+        Player player = (Player) map.getPlayer();
+        
         if (powerUp instanceof PowerUp.Star) {
             // do something here, like give the player points
+        	star_step = 500 + star_step;
             soundManager.play(prizeSound);
         }
         else if (powerUp instanceof PowerUp.Music) {
@@ -602,6 +620,9 @@ public class GameManager extends GameCore {
             soundManager.play(prizeSound,
                 new EchoFilter(2000, .7f), false);
             map = resourceManager.loadNextMap();
+        }
+        else if (powerUp instanceof PowerUp.Mushroom){
+        	player.increaseHealth(5);
         }
     }
     
@@ -617,7 +638,7 @@ public class GameManager extends GameCore {
             //map.removeSprite(bullet);
             bullet.setState(Bullet.STATE_DEAD);
             Player player = (Player)map.getPlayer();
-            player.increaseHealth(5);
+            player.increaseHealth(10);
     	}
     }
     
