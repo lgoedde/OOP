@@ -86,7 +86,7 @@ public class GameManager extends GameCore {
         soundManager = new SoundManager(PLAYBACK_FORMAT);
         prizeSound = soundManager.getSound("./sounds/prize.wav");
         boopSound = soundManager.getSound("./sounds/boop2.wav");
-        //fireSound = soundManager.getSound("./sounds/bullet.wav");
+        fireSound = soundManager.getSound("./sounds/boop2.wav");
 
         // start music
         midiPlayer = new MidiPlayer();
@@ -416,6 +416,7 @@ public class GameManager extends GameCore {
 		bullet.setVelocityX( (direction == "right") ? .5f : -.5f );
 		bullet.setY(player1.getY() + 10);
 		map.addSprite(bullet);
+		soundManager.play(fireSound);
     }
     
     public void instantiateGbullet(float bull_x, float bull_y) {
@@ -623,6 +624,7 @@ public class GameManager extends GameCore {
         }
         else if (powerUp instanceof PowerUp.Mushroom){
         	player.increaseHealth(5);
+        	soundManager.play(prizeSound);
         }
     }
     
